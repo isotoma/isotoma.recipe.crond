@@ -21,6 +21,8 @@ class Cron(object):
         self.options = options
         self.buildout = buildout
 
+        self.options.setdefault("location", "cron.d")
+
         self.options.setdefault("minute", "*")
         self.options.setdefault("hour", "*")
         self.options.setdefault("day-of-month", "*")
@@ -29,9 +31,6 @@ class Cron(object):
 
         if not self.options.get("user"):
             raise ValueError("You must specify a user to run the command as")
-
-        if not self.options.get("location"):
-            raise ValueError("You must specify where to write this cron rule to")
 
         flag = True
         for o in ("minute", "hour", "day-of-month", "month", "day-of-week"):
@@ -42,11 +41,11 @@ class Cron(object):
             raise ValueError("You must set one of 'minute', 'hour', 'day-of-month', 'month' or 'day-of-week'")
 
     def install(self):
-        dir, file = os.path.split(self.options['location'])
-        if not os.path.isdir(dir):
-            os.makedirs(dir)
+        if not os.path.isdir(self.options['location']):
+            os.makedirs(self.options['location'])
 
-        file = open(self.options['location'], 'w')
+        path = os.path.join(self.options['location'], self.name)
+        file = open(path, 'w')
 
         # Can specify optional "comments" for any ops user looking in cron.d
         comments = self.options.get("comments", "").split("\n")
@@ -72,7 +71,7 @@ class Cron(object):
 
         file.close()
 
-        return [self.options['location']]
+        return [path]
 
     def update(self):
         pass
