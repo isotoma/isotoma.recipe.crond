@@ -49,10 +49,22 @@ class Cron(object):
         file = open(self.options['location'], 'w')
 
         # Can specify optional "comments" for any ops user looking in cron.d
-        comments = self.options["comments"].split("\n")
+        comments = self.options.get("comments", "").split("\n")
         if comments:
-            for line in comments:
-                file.write("# %s\n" % line)
+            for comment in comments:
+                if not comment:
+                    continue
+                file.write("# %s\n" % comment)
+            file.write("\n")
+
+        # Users can specify environment variables
+        vars = self.options.get("environment-vars", "").split("\n")
+        if vars:
+            for var in vars:
+                if not var:
+                    continue
+                kv = var.split()
+                file.write("%s=%s\n" % tuple(kv))
             file.write("\n")
 
         rule = "%(minute)s %(hour)s %(day-of-month)s %(month)s %(day-of-week)s %(user)s %(command)s\n"

@@ -44,6 +44,8 @@ You must specify at least one of the above. You can use normal `cron`_ notation 
 Optional Parameters
 -------------------
 
+environment-vars
+    Prepare the environment that your cron job will run under, for example setting PYTHONPATH
 comments
     Any comments made will be prefixed with '#' and included in the generated files.
 
