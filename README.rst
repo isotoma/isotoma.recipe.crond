@@ -25,6 +25,8 @@ location
 Time Parameters
 ---------------
 
+at
+    One of 'reboot', 'yearly', 'monthly', 'weekly', 'daily', 'midnight' or 'hourly'
 minute
     Any integer from 0 to 59
 hour

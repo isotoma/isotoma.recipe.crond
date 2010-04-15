@@ -33,12 +33,12 @@ class Cron(object):
             raise ValueError("You must specify a user to run the command as")
 
         flag = True
-        for o in ("minute", "hour", "day-of-month", "month", "day-of-week"):
+        for o in ("at", "minute", "hour", "day-of-month", "month", "day-of-week"):
             if self.options.get(o) != "*":
                 flag = False
 
         if flag:
-            raise ValueError("You must set one of 'minute', 'hour', 'day-of-month', 'month' or 'day-of-week'")
+            raise ValueError("You must set one of 'at', 'minute', 'hour', 'day-of-month', 'month' or 'day-of-week'")
 
     def install(self):
         if not os.path.isdir(self.options['location']):
@@ -66,8 +66,13 @@ class Cron(object):
                 file.write("%s=%s\n" % tuple(kv))
             file.write("\n")
 
-        rule = "%(minute)s %(hour)s %(day-of-month)s %(month)s %(day-of-week)s %(user)s %(command)s\n"
-        file.write(rule % self.options)
+        if self.options.get("at"):
+            rule = "@%s" % self.options["at"]
+        else:
+            rule = "%(minute)s %(hour)s %(day-of-month)s %(month)s %(day-of-week)s" % self.options
+        rule = rule + " %(user)s %(command)s\n" % { "user": self.options['user'].strip(), "command": self.options['command'].strip() }
+
+        file.write(rule)
 
         file.close()
 
