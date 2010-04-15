@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+from stat import S_IXUSR, S_IXGRP, S_IXOTH
 
 class Cron(object):
 
@@ -21,6 +22,8 @@ class Cron(object):
         self.options = options
         self.buildout = buildout
 
+        self.scriptdir = os.path.join(self.buildout['buildout']['parts-directory'], self.name)
+
         self.options.setdefault("location", "cron.d")
 
         self.options.setdefault("minute", "*")
@@ -28,6 +31,9 @@ class Cron(object):
         self.options.setdefault("day-of-month", "*")
         self.options.setdefault("month", "*")
         self.options.setdefault("day-of-week", "*")
+
+        if self.options.get("script") and self.options.get("command"):
+            raise ValueError("You can't pass a script and specify a command to run")
 
         if not self.options.get("user"):
             raise ValueError("You must specify a user to run the command as")
@@ -41,8 +47,24 @@ class Cron(object):
             raise ValueError("You must set one of 'at', 'minute', 'hour', 'day-of-month', 'month' or 'day-of-week'")
 
     def install(self):
+        installed = []
+
         if not os.path.isdir(self.options['location']):
             os.makedirs(self.options['location'])
+
+        script_path = None
+        if self.options.get("script"):
+            if not os.path.isdir(self.scriptdir):
+                os.makedirs(self.scriptdir)
+
+            script_path = os.path.join(self.scriptdir, "script")
+            f = open(script_path, "w")
+            f.write(self.options["script"])
+            f.close()
+
+            os.chmod(script_path, os.stat(script_path)[0] | S_IXUSR | S_IXGRP | S_IXOTH)
+
+            installed.append(script_path)
 
         path = os.path.join(self.options['location'], self.name)
         file = open(path, 'w')
@@ -70,13 +92,20 @@ class Cron(object):
             rule = "@%s" % self.options["at"]
         else:
             rule = "%(minute)s %(hour)s %(day-of-month)s %(month)s %(day-of-week)s" % self.options
-        rule = rule + " %(user)s %(command)s\n" % { "user": self.options['user'].strip(), "command": self.options['command'].strip() }
+
+        rule = rule + " " + self.options['user'].strip() + " "
+
+        if script_path:
+            rule = rule + script_path
+        else:
+            rule = rule + self.options['command'].strip()
 
         file.write(rule)
-
         file.close()
 
-        return [path]
+        installed.append(path)
+
+        return installed
 
     def update(self):
         pass
