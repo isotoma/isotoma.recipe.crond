@@ -15,7 +15,9 @@ Mandatory Parameters
 --------------------
 
 command
-    The command to run from cron
+    The command to run from cron. Cron can't handle multi-line commands, so \n will become ' '.
+script
+    Instead of command you can provide a script inline that will be saved to disk and run in the cronjob.
 user
     The account to run the command under
 location
