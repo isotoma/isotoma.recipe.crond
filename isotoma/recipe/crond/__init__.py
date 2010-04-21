@@ -98,7 +98,7 @@ class Cron(object):
         if script_path:
             rule = rule + script_path
         else:
-            rule = rule + self.options['command'].strip()
+            rule = rule + self.options['command'].strip().replace("\n", " ")
 
         file.write(rule)
         file.close()
