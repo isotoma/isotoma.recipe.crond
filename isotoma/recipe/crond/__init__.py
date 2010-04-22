@@ -88,7 +88,7 @@ class Cron(object):
             for var in vars:
                 if not var:
                     continue
-                kv = var.split()
+                kv = var.split(" ", 1)
                 file.write("%s=%s\n" % tuple(kv))
             file.write("\n")
 
