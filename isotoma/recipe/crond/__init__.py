@@ -74,8 +74,9 @@ class Cron(object):
         file.write("# It is created by these configs: %s\n# \n" % ", ".join(set(x[1] for x in self.buildout._annotated[self.name].values())))
 
         # Can specify optional "comments" for any ops user looking in cron.d
-        comments = self.options.get("comments", "").split("\n")
-        if comments:
+        comments = self.options.get("comments", None)
+        if comments is not None:
+            comments = comments.split("\n")
             for comment in comments:
                 if not comment:
                     continue
@@ -83,8 +84,9 @@ class Cron(object):
             file.write("\n")
 
         # Users can specify environment variables
-        vars = self.options.get("environment-vars", "").split("\n")
-        if vars:
+        vars = self.options.get("environment-vars", None)
+        if vars is not None:
+            vars = vars.split("\n")
             for var in vars:
                 if not var:
                     continue
@@ -103,6 +105,7 @@ class Cron(object):
             rule = rule + script_path
         else:
             rule = rule + self.options['command'].strip().replace("\n", " ")
+        rule += "\n"
 
         file.write(rule)
         file.close()
